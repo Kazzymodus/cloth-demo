@@ -1,0 +1,3 @@
+displayName = Cloth Demo
+author = Kazzymodus
+version = 0.1
