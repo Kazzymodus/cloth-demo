@@ -29,13 +29,15 @@ public abstract class BaseCape : ModItem
     public override void UpdateAccessory(Player player, bool hideVisual)
     {
         if (!hideVisual)
-        {
-            _capeData ??= ModContent.GetInstance<ClothDemo>().GetCapeData(CapeDataKey);
-            player.GetModPlayer<ClothDemoPlayer>().UpdateCape(_capeData);
-        }
+            UpdateCape(player);
     }
 
     public override void UpdateVanity(Player player)
+    {
+        UpdateCape(player);
+    }
+
+    private void UpdateCape(Player player)
     {
         _capeData ??= ModContent.GetInstance<ClothDemo>().GetCapeData(CapeDataKey);
         player.GetModPlayer<ClothDemoPlayer>().UpdateCape(_capeData);
