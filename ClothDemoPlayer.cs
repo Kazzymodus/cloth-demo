@@ -10,51 +10,54 @@ namespace ClothDemo;
 
 public class ClothDemoPlayer : ModPlayer
 {
-    private bool _hasEmberCapeEquipped;
-    private bool _hasEmberCapeEquippedLastFrame;
-    private CapeModel _emberCape;
+    private bool _hasCapeEquipped;
+    private bool _hasCapeEquippedLastFrame;
+    private int? _lastCapeDataId;
+    private CapeModel _cape;
 
-    public void UpdateEmberCape(CapeData capeData)
+    public void UpdateCape(CapeData capeData)
     {
-        if (Main.dedServ || _hasEmberCapeEquipped)
+        if (Main.dedServ || _hasCapeEquipped)
             return;
 
-        _hasEmberCapeEquipped = true;
+        _hasCapeEquipped = true;
 
         var capeOffset = new Vector2(capeData.CapeXOffset * Player.direction, capeData.CapeYOffset);
         var capePosition = Player.Center + capeOffset;
 
-        if (_emberCape == null || !_hasEmberCapeEquippedLastFrame)
+        if (_cape == null || !_hasCapeEquippedLastFrame || (_lastCapeDataId.HasValue && _lastCapeDataId != capeData.Id))
         {
-            _emberCape?.Dispose();
-            _emberCape = new CapeModel(capePosition, Player.direction, capeData.Dimensions, capeData.Anchor,
+            _cape?.Dispose();
+            _cape = new CapeModel(capePosition, Player.direction, capeData.Dimensions, capeData.Anchor,
                 capeData.PhysicalProperties, capeData.Shader.PassName);
         }
 
-        _emberCape.Update(capePosition, Player.direction, capeData.DefaultDamping, capeData.ConstraintPasses);
+        _cape.Update(capePosition, Player.direction, capeData.DefaultDamping, capeData.ConstraintPasses);
+
+        _lastCapeDataId = capeData.Id;
     }
 
 
     public override void ResetEffects()
     {
-        if (_hasEmberCapeEquippedLastFrame && !_hasEmberCapeEquipped)
+        if (_hasCapeEquippedLastFrame && !_hasCapeEquipped)
         {
-            _emberCape.Dispose();
-            _emberCape = null;
+            _cape.Dispose();
+            _cape = null;
         }
 
-        _hasEmberCapeEquippedLastFrame = _hasEmberCapeEquipped;
-        _hasEmberCapeEquipped = false;
+        _hasCapeEquippedLastFrame = _hasCapeEquipped;
+        _hasCapeEquipped = false;
     }
 
     public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a,
         ref bool fullBright)
     {
-        if (!_hasEmberCapeEquipped || _emberCape == null || drawInfo.shadow != 0f)
+        if (!_hasCapeEquipped || _cape == null || drawInfo.shadow != 0f)
             return;
 
         var shader = GameShaders.Armor.GetSecondaryShader(Player.cBack, Player);
 
-        _emberCape.Draw(Player, shader);
+        _cape.Draw(Player, shader);
     }
 }

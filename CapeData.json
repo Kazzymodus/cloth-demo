@@ -5,6 +5,41 @@
     "Dimensions": {
       "WidthInSegments": 12,
       "LengthInSegments": 16,
+      "SegmentSize": 6
+    },
+    "Anchor": {
+      "StartPosition": "0, 0",
+      "EndPosition": "0, 0",
+      "StartTan": "6, 0, 1",
+      "EndTan": "-6, 0, 1",
+      "Direction": "-1, 0, 0",
+      "Scrunch": 0.25
+    },
+    "PhysicalProperties": {
+      "Drag": 0.2,
+      "SegmentDragVariance": 0.1,
+      "GravityFactor": 2,
+      "WindProperties": {
+        "WindFactor": 1.5,
+        "FlutterSpeed": 0.2,
+        "FlutterStrength": 0.15
+      },
+      "StretchThreshold": 0.75
+    },
+    "DefaultDamping": 0.6,
+    "ConstraintPasses": 5,
+    "Shader": {
+      "PassName": "CapeColor",
+      "Color": "1, 0.5, 0.7",
+      "Opacity": 0.3
+    }
+  },
+  "Ember": {
+    "CapeXOffset": 0,
+    "CapeYOffset": -4,
+    "Dimensions": {
+      "WidthInSegments": 16,
+      "LengthInSegments": 16,
       "SegmentSize": 8
     },
     "Anchor": {
@@ -32,8 +67,8 @@
       "PassName": "CapeSparks",
       "Image": "Images/Misc/noise",
       "Color": "1.35, 0.85, 0",
-      "SecondaryColor": "0.5, 0.5, 0.5",
-      "Opacity": 0.4
+      "SecondaryColor": "0.5, 0.45, 0.0",
+      "Opacity": 0.1
     }
   }
 }

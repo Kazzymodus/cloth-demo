@@ -16,6 +16,11 @@ float4 uShaderSpecificData;
 
 static const float PI = 3.1415926535f;
 
+float4 CapeColor(float4 sampleColor : COLOR0, float2 coords : TEXCOORD0) : COLOR0
+{ 
+    return float4(uColor, 1) * uOpacity;
+}
+
 float4 CapeSparks(float4 sampleColor : COLOR0, float2 coords : TEXCOORD0) : COLOR0
 { 
     float2 pixel = coords * uImageSize0;
@@ -37,6 +42,11 @@ float4 CapeSparks(float4 sampleColor : COLOR0, float2 coords : TEXCOORD0) : COLO
 
 technique Technique1
 {	
+    pass CapeColor
+    {
+        PixelShader = compile ps_2_0 CapeColor();
+    }
+
     pass CapeSparks
     {
         PixelShader = compile ps_2_0 CapeSparks();

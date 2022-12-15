@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ClothDemo.Effects;
 using ClothDemo.Effects.DataStructures;
@@ -25,6 +26,10 @@ public class ClothDemo : Mod
         var capeDataFileBytes = GetFileBytes("CapeData.json");
         var capeDataJson = Encoding.UTF8.GetString(capeDataFileBytes);
         _capeDataCollection = JsonConvert.DeserializeObject<IDictionary<string, CapeData>>(capeDataJson);
+
+        var capeDataId = 0;
+        foreach (var capeData in _capeDataCollection)
+            capeData.Value.Id = capeDataId++;
 
         var shaderRef = new Ref<Effect>(ModContent
             .Request<Effect>("ClothDemo/Effects/Shader", AssetRequestMode.ImmediateLoad).Value);

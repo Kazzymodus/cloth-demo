@@ -4,6 +4,7 @@ namespace ClothDemo.Effects.DataStructures;
 
 public class CapeData
 {
+    public int Id { get; set; }
     public int CapeXOffset { get; set; }
     public int CapeYOffset { get; set; }
     public ClothDimensions Dimensions { get; set; }
