@@ -1,1 +1,5 @@
-Adds cloth physics that nobody asked for.
+Adds two capes demoing a custom cloth physics system.
+
+Both capes can be crafted from one Wood each, can be equipped in any accessory slot (vanity and non-vanity) and support dyes.
+
+Enjoy!
