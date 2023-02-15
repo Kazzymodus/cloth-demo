@@ -15,6 +15,8 @@ public class ClothDemoPlayer : ModPlayer
     private int? _lastCapeDataId;
     private CapeModel _cape;
 
+    public bool ShouldDrawCape => _hasCapeEquipped && _cape != null;
+
     public void UpdateCape(CapeData capeData)
     {
         if (Main.dedServ || _hasCapeEquipped)
@@ -37,6 +39,7 @@ public class ClothDemoPlayer : ModPlayer
         _lastCapeDataId = capeData.Id;
     }
 
+    public void DrawCape() => _cape.Draw(Player, GameShaders.Armor.GetSecondaryShader(Player.cBack, Player));
 
     public override void ResetEffects()
     {
@@ -48,16 +51,5 @@ public class ClothDemoPlayer : ModPlayer
 
         _hasCapeEquippedLastFrame = _hasCapeEquipped;
         _hasCapeEquipped = false;
-    }
-
-    public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a,
-        ref bool fullBright)
-    {
-        if (!_hasCapeEquipped || _cape == null || drawInfo.shadow != 0f)
-            return;
-
-        var shader = GameShaders.Armor.GetSecondaryShader(Player.cBack, Player);
-
-        _cape.Draw(Player, shader);
     }
 }

@@ -63,7 +63,7 @@ public class VertexGrid : IDisposable
         var xCoordPerStep = 1f / (_width - 1);
         var yCoordPerStep = 1f / (_height - 1);
 
-        var screenPositionVector = new Vector3(Main.screenPosition, 0);
+        var screenPositionVector = new Vector4(Main.screenPosition, 0, 0);
 
         var colorBuffer = lightingMode == VertexGridLightingMode.PerSegment
             ? new Dictionary<Point, Color>()
@@ -71,7 +71,7 @@ public class VertexGrid : IDisposable
 
         var getColor = lightingMode switch
         {
-            VertexGridLightingMode.FullBright => (Func<Vector3, Color>)((_) => Color.White),
+            VertexGridLightingMode.FullBright => (Func<Vector4, Color>)((_) => Color.White),
             VertexGridLightingMode.PerSegment => (position) =>
             {
                 var tile = position.XY().ToTileCoordinates();
@@ -87,12 +87,52 @@ public class VertexGrid : IDisposable
 
         for (var i = 0; i < positions.Length; i++)
         {
-            var position = positions[i];
+            var position = new Vector4(positions[i], 1);
             // This is a somewhat crude method to shrink the z-positions to the acceptable range (0 - 1)
             // without any z-fighting.
             position.Z = (position.Z + maxZ) / (maxZ * 2);
             _vertices[i] = new CustomVertexInfo(position - screenPositionVector, getColor(position),
-                new Vector2(i % _width * xCoordPerStep, i / _width * yCoordPerStep));
+                new Vector3(
+                    i % _width * xCoordPerStep,
+                    i / _width * yCoordPerStep,
+                    1));
+        }
+
+        for (var i = 0; i < (_width - 1) * (_height - 1); i++)
+        {
+            var vertexOne = _vertices[i].Position.XY();
+            var vertexTwo = _vertices[i + 1].Position.XY();
+            ;
+            var vertexThree = _vertices[i + _width].Position.XY();
+            ;
+            var vertexFour = _vertices[i + _width + 1].Position.XY();
+            ;
+
+            var diagonalOne = vertexFour - vertexOne;
+            var diagonalTwo = vertexThree - vertexTwo;
+            var a1 = diagonalOne.Y / diagonalOne.X;
+            var a2 = diagonalTwo.Y / diagonalTwo.X;
+
+            var b1 = vertexOne.Y;
+            var b2 = vertexThree.Y;
+            var x = (-b2 + b1) / (a2 - a1);
+            var y = b1 + a1 * x;
+            var intersection = new Vector2(x + vertexOne.X, y);
+
+            var d1 = (intersection - vertexOne).Length();
+            var d2 = (intersection - vertexTwo).Length();
+            var d3 = (intersection - vertexThree).Length();
+            var d4 = (intersection - vertexFour).Length();
+
+            var coords1 = _vertices[i].TextureCoordinate * ((d1 + d4) / d4);
+            var coords2 = _vertices[i + 1].TextureCoordinate * ((d2 + d3) / d3);
+            var coords3 = _vertices[i + _width].TextureCoordinate * ((d3 + d2) / d2);
+            var coords4 = _vertices[i + _width + 1].TextureCoordinate * ((d4 + d1) / d1);
+
+            _vertices[i].TextureCoordinate = coords1 / coords1.Z;
+            _vertices[i + 1].TextureCoordinate = coords2 / coords2.Z;
+            _vertices[i + _width].TextureCoordinate = coords3 / coords3.Z;
+            _vertices[i + _width + 1].TextureCoordinate = coords4 / coords4.Z;
         }
 
         _vertexBuffer.SetData(_vertices);
@@ -107,7 +147,7 @@ public class VertexGrid : IDisposable
         Main.instance.GraphicsDevice.Indices = _indexBuffer;
 
         Main.instance.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _vertices.Length, 0,
-            _indices.Length / 3);
+            _indices.Length / VerticesPerFace);
 
         Main.instance.GraphicsDevice.SetVertexBuffers(previousBuffers);
         Main.instance.GraphicsDevice.Indices = previousIndices;
@@ -155,18 +195,18 @@ public class VertexGrid : IDisposable
 
     private struct CustomVertexInfo : IVertexType
     {
-        public Vector3 Position;
+        public Vector4 Position;
         public Color Color;
-        public Vector2 TextureCoordinate;
+        public Vector3 TextureCoordinate;
 
         public static VertexDeclaration Declaration { get; } = new(
-            new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
-            new VertexElement(12, VertexElementFormat.Color, VertexElementUsage.Color, 0),
-            new VertexElement(16, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0));
+            new VertexElement(0, VertexElementFormat.Vector4, VertexElementUsage.Position, 0),
+            new VertexElement(16, VertexElementFormat.Color, VertexElementUsage.Color, 0),
+            new VertexElement(20, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 0));
 
         public VertexDeclaration VertexDeclaration => Declaration;
 
-        public CustomVertexInfo(Vector3 position, Color color, Vector2 textureCoordinate)
+        public CustomVertexInfo(Vector4 position, Color color, Vector3 textureCoordinate)
         {
             Position = position;
             Color = color;

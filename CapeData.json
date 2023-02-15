@@ -40,7 +40,7 @@
     "Dimensions": {
       "WidthInSegments": 16,
       "LengthInSegments": 16,
-      "SegmentSize": 8
+      "SegmentSize": 6
     },
     "Anchor": {
       "StartPosition": "0, 0",

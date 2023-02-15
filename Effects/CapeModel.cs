@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using ClothDemo.Effects.DataStructures;
 using ClothDemo.Physics;
 using Microsoft.Xna.Framework;
@@ -19,6 +20,10 @@ public class CapeModel : IDisposable
     private readonly string _shaderPassName;
 
     private readonly Texture2D _texture;
+
+    private static readonly EffectPass ResetEffectPass = (EffectPass)typeof(SpriteBatch)
+        .GetField("spriteEffectPass", BindingFlags.Instance | BindingFlags.NonPublic)
+        !.GetValue(Main.Camera.SpriteBatch)!;
 
     private bool _isDisposed;
 
@@ -109,20 +114,33 @@ public class CapeModel : IDisposable
             Color.White
         );
 
-        Texture previousTexture = null;
+        Main.instance.GraphicsDevice.Textures[0] = _texture;
 
         switch (customShader)
         {
             case ArmorShaderData armorShaderData:
-                previousTexture = Main.instance.GraphicsDevice.Textures[0];
-                Main.instance.GraphicsDevice.Textures[0] = _texture;
                 armorShaderData.Apply(player, drawData);
                 break;
             case MiscShaderData miscShaderData:
                 miscShaderData.Apply(drawData);
                 break;
             case null:
-                GameShaders.Misc[_shaderPassName].Apply(drawData);
+                var shader = GameShaders.Misc[_shaderPassName];
+                // Due to how vertices and sprites don't have the same Y-axis direction, the easiest
+                // way of getting rendering in line with Terraria's sprites is to simply turn the camera
+                // upside down and front-to-back.
+                var view = Matrix.CreateLookAt(Vector3.Forward, Vector3.Zero, Vector3.Down);
+                var projection =
+                    Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, -Main.screenHeight, 0, 0.01f, 200f);
+                var matrix = Main.Camera.GameViewMatrix.ZoomMatrix * view * projection;
+                shader.Shader.Parameters["MatrixTransform"].SetValue(matrix);
+                shader.Apply(drawData);
+                // This removes a lot of the fuzziness at oblique angles.
+                for (var i = 0; i < 4; i++)
+                {
+                    Main.graphics.GraphicsDevice.SamplerStates[1] = SamplerState.PointWrap;
+                }
+
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(customShader), customShader.GetType().Name,
@@ -131,8 +149,7 @@ public class CapeModel : IDisposable
 
         _vertexGrid.Draw();
 
-        if (previousTexture != null)
-            Main.instance.GraphicsDevice.Textures[0] = previousTexture;
+        ResetEffectPass.Apply();
     }
 
     public void Dispose()
